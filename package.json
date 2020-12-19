@@ -4,12 +4,17 @@
   "description": "An Instagram Scraper",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "build": "tsc --outDir dist",
+    "start": "node -r dotenv/config src/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "puppeteer": "^5.5.0"
+  },
+  "devDependencies": {
+    "@types/puppeteer": "^5.4.2"
   }
 }

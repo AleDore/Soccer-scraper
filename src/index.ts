@@ -1,10 +1,9 @@
 const puppeteer = require("puppeteer");
+const scraperController = require("./pageController");
 
-async function startBrowser() {
-  let browser;
+(async() => {
   try {
-    console.log("Opening the browser...");
-    browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
       headless: false,
       args: ["--disable-setuid-sandbox"],
       "ignoreHTTPSErrors": true,
@@ -12,10 +11,7 @@ async function startBrowser() {
   } catch (error) {
     console.log("Could not create a browser instance => : ", error);
   }
+})();
 
-  return browser;
-}
 
-module.exports = {
-  startBrowser,
-};
+scraperController(browserInstance);
