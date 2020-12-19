@@ -1,7 +1,7 @@
 import AutoScrollInterface from "../interfaces/AutoScroll";
 
 export default class AutoScroll implements AutoScrollInterface{
-  public async scroll(page: any) {
+  public async scroll(page: any): Promise<void> {
     await page.evaluate(async () => {
       await new Promise((resolve, reject) => {
         let totalHeight = 0;

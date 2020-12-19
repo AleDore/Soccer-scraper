@@ -20,10 +20,18 @@ export default class Scraper implements ScraperInterface {
   }
 
   public async scrapeInstagram(): Promise<InstagramResponse>{
+    // Get Login Cred.
+    const username = process.env.INSTAGRAM_USERNAME
+    const password = process.env.INSTAGRAM_PASSWORD
+
+    if(!username || !password){
+      console.log("Missing environment variable INSTAGRAM_USERNAME or INSTAGRAM_PASSWORD")
+    }
+
   // Load Page, Login and Scroll to Bottom to Fetch All Timeline Data.
   await this._loadPage(this.instagramUrl)
-  await this.AuthModule.login(this.page);
-  await this.AutoScrollModule.scroll(this.page);
+  await this.AuthModule.login(this.page, username, password);
+  // await this.AutoScrollModule.scroll(this.page);
 
   // Take a Screenshot for Comparison.
   await this.page.screenshot({
@@ -51,7 +59,9 @@ export default class Scraper implements ScraperInterface {
         caption: post.querySelector("span._8Pl3R span").innerHTML,
         likes,
       });
+
     })
+    return result
   })
 
   return payload
@@ -60,7 +70,7 @@ export default class Scraper implements ScraperInterface {
   private async _loadPage(url: string): Promise<void>{
     const page = await this.browser.newPage();
     await page.setViewport({ width: 1200, height: 800 });
-    await page.goto(url, { waitUntil: "load", timeout: 10000 });
+    await page.goto(url, { waitUntil: "networkidle0", timeout: 10000 });
 
     this.page = page
   }
