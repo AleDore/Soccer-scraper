@@ -1,3 +1,5 @@
+import { InstagramResponse } from "./Responses";
+
 export default interface ScraperInterface {
-  scrapeInstagram(page): Promise<void>
+  scrapeInstagram(): Promise<InstagramResponse>
 }
