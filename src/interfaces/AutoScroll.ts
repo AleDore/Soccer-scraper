@@ -1,3 +1,3 @@
 export default interface AutoScrollInterface {
-  scroll(page: any) :Promise<void>
+  scroll(page: any) :Promise<any>
 }
