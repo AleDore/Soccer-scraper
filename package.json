@@ -1,7 +1,7 @@
 {
-  "name": "Instagram-scraper",
+  "name": "Soccer-scraper",
   "version": "1.0.0",
-  "description": "An Instagram Scraper",
+  "description": "A soccer Scraper",
   "main": "index.js",
   "scripts": {
     "build": "tsc --outDir dist",
