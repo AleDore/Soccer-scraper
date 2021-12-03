@@ -17,7 +17,7 @@ import { scrape } from "./Scraper";
     await pipe(
       launchBrowser(),
       TE.chain((browser) =>
-        AR.sequence(TE.ApplicativeSeq)(
+        AR.sequence(TE.ApplicativePar)(
           urls.map((championshipUrl) =>
             pipe(
               scrape(browser, `${championshipUrl}`),
