@@ -8,26 +8,23 @@ import { scrape } from "./Scraper";
 
 (async () => {
   try {
-    const days = Array.from(Array(16).keys()).filter((val) => val > 0);
     const urls = [
-      "https://www.gazzetta.it/calcio/serie-a/calendario-risultati/?giornata=",
-      "https://www.gazzetta.it/calcio/serie-b/calendario-risultati/?fase=regularSeason&giornata=",
+      "https://www.statistichesulcalcio.com/campionati/Italia/Serie-A_71/anno_129.html",
+      "https://www.statistichesulcalcio.com/campionati/Italia/Serie-B_72/anno_129.html",
+      "https://www.statistichesulcalcio.com/campionati/Spagna/Liga_128/anno_129.html",
+      "https://www.statistichesulcalcio.com/campionati/Inghilterra/Premier-League_55/anno_129.html",
     ];
     await pipe(
       launchBrowser(),
       TE.chain((browser) =>
-        AR.sequence(TE.ApplicativePar)(
+        AR.sequence(TE.ApplicativeSeq)(
           urls.map((championshipUrl) =>
             pipe(
-              AR.sequence(TE.ApplicativePar)(
-                days.map((day) =>
-                  scrape(browser, `${championshipUrl}${day}`, day)
-                )
-              ),
+              scrape(browser, `${championshipUrl}`),
               TE.map((championshipPayload) => ({
-                championship: championshipUrl.substr(
-                  championshipUrl.indexOf("serie"),
-                  7
+                championship: championshipUrl.substring(
+                  championshipUrl.indexOf("/", 50) + 1,
+                  championshipUrl.lastIndexOf("/")
                 ),
                 payload: AR.flatten(championshipPayload).sort(
                   (a, b) => a.day - b.day

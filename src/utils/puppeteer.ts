@@ -1,7 +1,14 @@
-import { Browser, EvaluateFn, Page, SerializableOrJSHandle } from "puppeteer";
+import {
+  Browser,
+  ElementHandle,
+  EvaluateFn,
+  Page,
+  SerializableOrJSHandle,
+} from "puppeteer";
 import * as TE from "fp-ts/lib/TaskEither";
 import { toError } from "fp-ts/lib/Either";
 import * as puppeteer from "puppeteer";
+import { pipe } from "fp-ts/lib/function";
 
 export const launchBrowser = () =>
   TE.tryCatch(
@@ -32,6 +39,12 @@ export const evaluatePage = <T>(
   ...args: SerializableOrJSHandle[]
 ) => TE.tryCatch(() => page.evaluate(fn, ...args), toError);
 
+export const evaluateElement = <T>(
+  element: ElementHandle<Element>,
+  fn: (el: Element, ...args: SerializableOrJSHandle[]) => T,
+  ...args: SerializableOrJSHandle[]
+) => TE.tryCatch(() => element.evaluate(fn, ...args), toError);
+
 export const removeModal = (page: Page, selectorToRemove: string) =>
   evaluatePage(
     page,
@@ -42,4 +55,20 @@ export const removeModal = (page: Page, selectorToRemove: string) =>
       }
     },
     selectorToRemove
+  );
+
+export const selectElementsWithText = (
+  page: Page,
+  tag: string,
+  textToSearch: string,
+  xPathAppend?: string
+) =>
+  TE.tryCatch(
+    () =>
+      page.$x(
+        `//${tag}[contains(text(),'${textToSearch}')]${
+          xPathAppend ? xPathAppend : ""
+        }`
+      ),
+    toError
   );
