@@ -5,6 +5,7 @@ import * as AR from "fp-ts/lib/Array";
 import { writeCsv } from "./utils/csv_utils";
 import { launchBrowser } from "./utils/puppeteer";
 import { scrape } from "./Scraper";
+import { analyzeDraws, extractTeams } from "./utils/analytics";
 
 (async () => {
   try {
@@ -26,7 +27,7 @@ import { scrape } from "./Scraper";
                   championshipUrl.indexOf("/", 50) + 1,
                   championshipUrl.lastIndexOf("/")
                 ),
-                payload: AR.flatten(championshipPayload).sort(
+                matches: AR.flatten(championshipPayload).sort(
                   (a, b) => a.day - b.day
                 ),
               }))
@@ -34,18 +35,32 @@ import { scrape } from "./Scraper";
           )
         )
       ),
+      TE.map((championShips) =>
+        championShips.map((championship) => ({
+          ...championship,
+          draws: analyzeDraws(
+            extractTeams(championship.matches),
+            championship.matches
+          ),
+        }))
+      ),
       TE.chain((championShips) =>
         AR.sequence(TE.ApplicativeSeq)(
           championShips.map((_) => {
+            console.log("Championship draws analysis");
+            console.log(JSON.stringify(_.draws));
             console.log("Championship payload " + _.championship);
-            console.log(JSON.stringify(_.payload));
+            console.log(JSON.stringify(_.matches));
             return writeCsv(
               `/Users/alessio/Desktop/out_${_.championship}.csv`,
-              _.payload
+              _.matches
             );
           })
         )
-      )
+      ),
+      TE.mapLeft((e) => {
+        throw e;
+      })
     )();
   } catch (error) {
     console.log("Could not create a browser instance => : ", error);

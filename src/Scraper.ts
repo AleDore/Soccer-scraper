@@ -11,6 +11,7 @@ import {
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as AR from "fp-ts/lib/Array";
+import { errorsToError } from "./utils/conversions";
 
 export const scrape = (browser: Browser, url: string) => {
   console.log(`scraping url ${url}`);
@@ -34,16 +35,23 @@ export const scrape = (browser: Browser, url: string) => {
                       const homeTeam = matchRow[1]?.innerHTML;
                       const awayTeam = matchRow[2]?.innerHTML;
                       const golHomeAway = matchRow[3]?.innerHTML;
-                      const golHome = Number.parseInt(
-                        golHomeAway.substr(0, golHomeAway.indexOf("-"))
-                      );
-                      const golAway = Number.parseInt(
-                        golHomeAway.substr(
-                          golHomeAway.indexOf("-") + 1,
-                          golHomeAway.length
-                        )
-                      );
-
+                      let golHome;
+                      let golAway;
+                      // head to head
+                      if (matchRow[4]?.innerHTML === " ") {
+                        golHome = 3;
+                        golAway = 0;
+                      } else {
+                        golHome = Number.parseInt(
+                          golHomeAway.substr(0, golHomeAway.indexOf("-"))
+                        );
+                        golAway = Number.parseInt(
+                          golHomeAway.substr(
+                            golHomeAway.indexOf("-") + 1,
+                            golHomeAway.length
+                          )
+                        );
+                      }
                       results.push({
                         homeTeam,
                         awayTeam,
@@ -62,7 +70,16 @@ export const scrape = (browser: Browser, url: string) => {
                   },
                   el
                 ),
-                TE.map((_) => _.map((el) => ({ day: idx + 1, ...el })))
+                TE.map((_) =>
+                  _.map((el) => MatchRecord.decode({ day: idx + 1, ...el }))
+                ),
+                TE.chain((matchRecords) =>
+                  AR.sequence(TE.ApplicativePar)(
+                    matchRecords.map((_) =>
+                      pipe(TE.fromEither(_), TE.mapLeft(errorsToError))
+                    )
+                  )
+                )
               )
             )
           );
@@ -71,37 +88,6 @@ export const scrape = (browser: Browser, url: string) => {
     )
   );
 };
-
-const x = (page: Page) =>
-  evaluatePage(page, () => {
-    const results: MatchRecord[] = [];
-    const matches = document.querySelectorAll("div.sc-hMqMXs");
-
-    matches.forEach((match) => {
-      const homeAwayTeam = match.querySelectorAll("div.sc-VigVT");
-
-      const homeTeam = homeAwayTeam[0]?.innerHTML;
-      const awayTeam = homeAwayTeam[1]?.innerHTML;
-      const golHomeAway = match.querySelectorAll("div.sc-cSHVUG");
-      const golHome = Number.parseInt(golHomeAway[0]?.innerHTML);
-      const golAway = Number.parseInt(golHomeAway[1]?.innerHTML);
-
-      results.push({
-        day: 1,
-        homeTeam,
-        awayTeam,
-        golHome,
-        golAway,
-        winner:
-          golHome === golAway
-            ? "DRAW"
-            : golHome > golAway
-            ? homeTeam
-            : awayTeam,
-      });
-    });
-    return results;
-  });
 
 const loadPage = (browser: Browser, url: string) =>
   pipe(
